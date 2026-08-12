@@ -32,6 +32,8 @@ const FPS_SPEED = 5
 const FPS_MIN_Y = 1
 // 鼠标转向灵敏度
 const MOUSE_SENSITIVITY = 0.002
+// 滚轮缩放速度（每像素 deltaY 平移的距离，单位 m）
+const WHEEL_ZOOM_SPEED = 0.05
 
 /**
  * 修正 TransformControls gizmo 的两个视觉问题：
@@ -130,6 +132,15 @@ export function createEditorControls(
     dom.releasePointerCapture(e.pointerId)
   }
 
+  // FPS 模式滚轮缩放：沿相机前方向量平移相机
+  const onWheel = (e: WheelEvent) => {
+    if (!fpsActive || transformDragging) return
+    e.preventDefault()
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+    camera.position.addScaledVector(forward, -e.deltaY * WHEEL_ZOOM_SPEED)
+    if (camera.position.y < FPS_MIN_Y) camera.position.y = FPS_MIN_Y
+  }
+
   // TransformControls 拖拽时禁用 OrbitControls 和自由视角移动
   transform.addEventListener('mouseDown', () => {
     orbit.enabled = false
@@ -179,6 +190,7 @@ export function createEditorControls(
       dom.addEventListener('pointerdown', onPointerDown)
       dom.addEventListener('pointermove', onPointerMove)
       dom.addEventListener('pointerup', onPointerUp)
+      dom.addEventListener('wheel', onWheel, { passive: false })
     },
     disableFPS() {
       fpsActive = false
@@ -187,6 +199,7 @@ export function createEditorControls(
       dom.removeEventListener('pointerdown', onPointerDown)
       dom.removeEventListener('pointermove', onPointerMove)
       dom.removeEventListener('pointerup', onPointerUp)
+      dom.removeEventListener('wheel', onWheel)
     },
     isFPSActive() {
       return fpsActive
