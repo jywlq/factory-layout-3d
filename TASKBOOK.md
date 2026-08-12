@@ -71,7 +71,7 @@ Vite + TypeScript（vanilla 模板）+ three + dxf-parser（仅 CAD→3D 用）�
 
 以下由 v1 任务书发明，实现时可按效果调整，但同一处只允许有一个事实来源：
 
-- 设备目录（类型/中文名/尺寸/颜色）：以 `src/builder.ts` 的 `DEVICE_PRESETS` 为准（CNC 机床-蓝 / 货架-绿 / 托盘区-橙 / AGV-黄）；
+- 设备目录（类型/中文名/尺寸/颜色）：以 `src/builder.ts` 的 `DEVICE_PRESETS` 为准（机床-蓝 / 货架-橙 / 托盘区-绿 / AGV-红）；
 - 吸附步长：平移 0.5 m、旋转 15°，带开关；
 - 默认示例工厂：`src/defaultSpec.ts`（30m×20m、外墙一圈、若干设备）；
 - 模块文件命名：以现有代码为准（spec/builder/controls/io/ui/main），不强求 v1 中的 catalog.ts/editor.ts 等命名。

@@ -10,6 +10,17 @@ This file provides guidance to Lingma (lingma.aliyun.com) when working with code
 - 入口页面：`index.html` 加载 `src/main.ts`。
 - 当前进度：**地基（手动布局/编辑/保存）已完成，CAD→3D 主线尚未实施**。
 
+## 文档体系
+
+| 文档 | 职责 |
+|---|---|
+| `README.md` | 对外说明：项目介绍、运行步骤、功能清单、SceneSpec 格式、CAD 规范 v1、已知限制 |
+| `TASKBOOK.md` | 需求唯一基线（任务书 v2），范围、验收清单与"我的假设"的事实来源 |
+| `DEVELOPMENT.md` | 个人开发者全流程指引：环境搭建、开发流程、代码规范、测试策略、构建部署 |
+| `AGENTS.md` | 本文件：架构要点与 AI 协作约定 |
+
+同一事实只允许有一个来源：需求以 `TASKBOOK.md` 为准，设备外观以 `builder.ts` 的 `DEVICE_PRESETS` 为准；文档与代码不一致时修正文档。
+
 ## 常用命令
 
 ```bash
@@ -26,7 +37,11 @@ npm run build
 npm run preview
 ```
 
+> 环境要求：Node.js `^20.19.0 || >=22.12.0`（Vite 8 官方要求）。
+>
 > 注意：项目没有配置测试框架。自检时请手动按 README 中的功能清单逐条验证。
+>
+> 分支、提交与 PR 规范见 `DEVELOPMENT.md` 第 5 节（Conventional Commits，中文描述；PR 标题与描述均用中文）。
 
 ## 技术栈与约束
 

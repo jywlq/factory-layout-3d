@@ -1,18 +1,35 @@
 # 三维工厂布局规划器（最小 Demo）
 
-这是一个基于 **Vite + TypeScript + three** 的无后端 Web 3D 最小示例。
+基于 **Vite + TypeScript + three** 的无后端 Web 3D 最小示例：将工厂布局建模为一份 JSON 场景契约（`SceneSpec`），在浏览器中三维浏览、拖拽编辑、保存/加载与截图，目标是快速给客户展示未来厂房和设备的面貌。
+
+## 项目状态
+
+| 阶段 | 内容 | 状态 |
+|---|---|---|
+| 地基（原 M1） | 3D 浏览 / 设备添加、拖拽、旋转 / 网格吸附 / 顶视图 / 场景保存加载 / 截图导出 | ✅ 已完成 |
+| CAD→3D（原 M2，本期主线） | 上传符合规范的 DXF → 自动生成地面/墙/设备占位，生成后仍可编辑保存；仓库内置样例 | ⏳ 待实施 |
+| 打磨交付（原 M3） | 全中文 UI 收尾、配色与名称标签、README 收尾、演示脚本演练 | ⏳ 待实施 |
+
+需求基线见 [`TASKBOOK.md`](./TASKBOOK.md)；开发者全流程指引见 [`DEVELOPMENT.md`](./DEVELOPMENT.md)；架构与 AI 协作约定见 [`AGENTS.md`](./AGENTS.md)。
+
+## 环境要求
+
+- **Node.js**：`^20.19.0` 或 `>=22.12.0`（Vite 8 官方要求，推荐最新 LTS）
+- **npm**：随 Node 自带即可
+- **浏览器**：支持 WebGL 的现代浏览器（Chrome / Edge 最新版推荐）
 
 ## 启动方式
 
 ```bash
 npm i
-npm run dev
+npm run dev        # 开发服务器，默认 http://localhost:5173
 ```
 
 构建：
 
 ```bash
-npm run build
+npm run build      # tsc 类型检查 + vite build，产物输出到 dist/
+npm run preview    # 本地预览生产构建
 ```
 
 ## 功能清单
@@ -25,6 +42,17 @@ npm run build
 - 透视视角 / 顶视图切换（顶视图为正交相机）
 - 场景 JSON 导出与导入
 - 当前视角 PNG 截图导出
+
+操作方式：鼠标左键拖动旋转视角、右键平移、滚轮缩放；点击设备选中后，用工具栏"移动模式 / 旋转模式"拖动手柄编辑。
+
+## 设备外观（DEVICE_PRESETS）
+
+| type | 中文名 | 尺寸 w×h×d (m) | 颜色 |
+|---|---|---|---|
+| `machine` | 机床 | 2 × 1.5 × 1.5 | 蓝 `#3b82f6` |
+| `shelf` | 货架 | 2.4 × 2.2 × 0.8 | 橙 `#f59e0b` |
+| `pallet` | 托盘区 | 2.5 × 0.3 × 2 | 绿 `#10b981` |
+| `agv` | AGV | 1.2 × 0.4 × 0.8 | 红 `#ef4444` |
 
 ## SceneSpec 数据格式（单位：米，Y-up）
 
@@ -40,12 +68,36 @@ npm run build
 }
 ```
 
+一切交互（添加/拖拽/旋转/删除/导入）只修改这份 JSON，再由 `buildScene(scene, spec)` 整体重建场景；数据契约不能持久化的操作，UI 一律不提供（高度锁定贴地、旋转仅限绕竖直轴）。
+
+## CAD 规范 v1（规划中，CAD→3D 主线的输入规范）
+
+> CAD→3D 功能尚未实施；本节为任务书定义的输入规范，实现时解析器只对本规范负责。
+
+- ASCII DXF，单位米。
+- **FLOOR 层**：闭合 LWPOLYLINE = 地面轮廓，取其包围盒作为 floor 的 w/d（居中对齐）。
+- **WALL 层**：LINE / LWPOLYLINE 的每个直线段 = 一段墙中心线（len=段长，rotY=段方向；弧段允许折线近似）。
+- **设备**：INSERT 块，块名 ∈ 设备目录（不区分大小写）；插入点 = 设备中心；块旋转角 = 设备朝向。
+- 缺 FLOOR 时回退：WALL 包围盒外扩 1 m。
+- 坐标映射：DXF(x,y) → three(x,z)，保证顶视图的右/上 = CAD 的右/上，角度方向一致。
+
 ## 代码结构（src）
 
-- `spec.ts`：类型定义、默认数据导出
+- `spec.ts`：`SceneSpec` 类型定义
 - `defaultSpec.ts`：内置小工厂示例
-- `builder.ts`：`buildScene(scene, spec)` 场景重建
-- `controls.ts`：OrbitControls / TransformControls 封装
+- `builder.ts`：`buildScene(scene, spec)` 场景重建；`DEVICE_PRESETS` 设备外观表
+- `controls.ts`：OrbitControls / TransformControls 封装（吸附、限位、相机切换）
 - `io.ts`：JSON 导入导出、PNG 截图
 - `ui.ts`：原生 HTML/CSS 工具栏
 - `main.ts`：应用入口与交互逻辑
+
+## 已知限制
+
+1. 设备只支持平面布局：落地 + 绕竖直轴转向，高度与倾斜不在本期范围；
+2. 设备为彩色占位方块 + 中文标签，非真实设备模型；
+3. 无后端，场景以 JSON 文件形式在浏览器本地保存/加载；
+4. CAD 规范 v1 由本项目定义，demo 只对自带样例负责，不承诺解析客户任意 DXF/DWG。
+
+## 许可证
+
+[MIT](./LICENSE)
