@@ -16,6 +16,9 @@ export interface UIRefs {
   dxfSampleButton: HTMLButtonElement
   dxfFileInput: HTMLInputElement
   dxfStatusText: HTMLSpanElement
+  fpsButton: HTMLButtonElement
+  fullscreenButton: HTMLButtonElement
+  exitFullscreenButton: HTMLButtonElement
 }
 
 export function createUI(root: HTMLElement): UIRefs {
@@ -30,6 +33,7 @@ export function createUI(root: HTMLElement): UIRefs {
       </aside>
       <main class="main-area">
         <div class="toolbar">
+          <button id="btn-fps">自由视角</button>
           <button id="btn-move">移动模式</button>
           <button id="btn-rotate">旋转模式</button>
           <button id="btn-snap">吸附：开</button>
@@ -39,12 +43,14 @@ export function createUI(root: HTMLElement): UIRefs {
           <button id="btn-shot">导出截图</button>
           <button id="btn-dxf">导入CAD</button>
           <button id="btn-dxf-sample">加载示例CAD</button>
+          <button id="btn-fullscreen">全屏</button>
           <span id="selection-text">未选中设备</span>
           <span id="dxf-status"></span>
           <input id="file-input" type="file" accept="application/json" hidden>
           <input id="dxf-input" type="file" accept=".dxf" hidden>
         </div>
         <div id="viewport"></div>
+        <button id="btn-exit-fullscreen" style="display:none">退出全屏</button>
       </main>
     </div>
   `
@@ -76,5 +82,8 @@ export function createUI(root: HTMLElement): UIRefs {
     dxfSampleButton: getEl<HTMLButtonElement>('#btn-dxf-sample'),
     dxfFileInput: getEl<HTMLInputElement>('#dxf-input'),
     dxfStatusText: getEl<HTMLSpanElement>('#dxf-status'),
+    fpsButton: getEl<HTMLButtonElement>('#btn-fps'),
+    fullscreenButton: getEl<HTMLButtonElement>('#btn-fullscreen'),
+    exitFullscreenButton: getEl<HTMLButtonElement>('#btn-exit-fullscreen'),
   }
 }

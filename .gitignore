@@ -1,0 +1,47 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+dist-ssr/
+build/
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 编辑器/IDE
+.vscode/
+.idea/
+.trae/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# TypeScript
+*.tsbuildinfo
+
+# 缓存
+.cache/
+.local/
+
+# 临时文件
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# 截图
+bug-repro-step*.png
+drag-attempt*.png
+drag*.png
