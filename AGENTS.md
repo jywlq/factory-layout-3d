@@ -8,7 +8,7 @@ This file provides guidance to Lingma (lingma.aliyun.com) when working with code
 
 - 需求基线见 **`TASKBOOK.md`（任务书 v2）**：本期核心交付是 **CAD(DXF)→三维场景自动生成**，目标是给客户快速展示厂房与设备面貌。
 - 入口页面：`index.html` 加载 `src/main.ts`。
-- 当前进度：**地基（手动布局/编辑/保存）已完成，CAD→3D 主线尚未实施**。
+- 当前进度：**地基与 CAD→3D 已完成，正在实施 M3 打磨交付（WASD 自由视角 / UI 收尾 / 演示演练）**。
 
 ## 文档体系
 
@@ -101,6 +101,7 @@ export function buildScene(scene: THREE.Scene, spec: SceneSpec): BuildResult
 - 透视相机：`THREE.PerspectiveCamera`，初始位置 `(24, 20, 24)`，看向原点。
 - 顶视图相机：`THREE.OrthographicCamera`，位置 `(0, 40, 0)`，使用 `up = (0, 0, -1)` 保证与 CAD 视角方向一致。
 - 切换逻辑在 `main.ts` 的 `toggleView()`，会同时更新 `OrbitControls` 和 `TransformControls` 的相机引用。
+- **WASD 自由视角**：基于 `PointerLockControls`，切换后指针锁定+鼠标转向+WASD/Space/Shift 移动；拖拽设备时暂停移动，Esc 退出回轨道模式。仅作用于透视相机。
 
 ### 5. 输入输出
 

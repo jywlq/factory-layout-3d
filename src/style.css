@@ -13,6 +13,7 @@ body,
   width: 100%;
   height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 .app-layout {
@@ -22,18 +23,27 @@ body,
 }
 
 .sidebar {
-  width: 180px;
-  padding: 12px;
+  width: 160px;
+  padding: 8px;
   border-right: 1px solid #cbd5e1;
   background: #f8fafc;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
+  transition: width 0.2s, padding 0.2s, overflow 0.2s;
+}
+
+.sidebar.collapsed {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
 }
 
 .sidebar h2 {
-  margin: 0 0 8px;
-  font-size: 16px;
+  margin: 0 0 4px;
+  font-size: 14px;
 }
 
 .main-area {
@@ -45,21 +55,27 @@ body,
 
 .toolbar {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
   flex-wrap: wrap;
-  padding: 8px;
+  padding: 4px 8px;
   border-bottom: 1px solid #cbd5e1;
   background: #f8fafc;
+}
+
+.toolbar.collapsed {
+  display: none;
 }
 
 button {
   border: 1px solid #94a3b8;
   background: white;
   color: #1e293b;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 4px;
+  padding: 4px 8px;
   cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 button:hover {
@@ -68,16 +84,35 @@ button:hover {
 
 #selection-text {
   color: #334155;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 #dxf-status {
   color: #64748b;
-  font-size: 13px;
-  margin-left: 8px;
+  font-size: 12px;
+  margin-left: 4px;
 }
 
 #viewport {
   flex: 1;
   min-height: 0;
+  position: relative;
+}
+
+#btn-exit-fullscreen {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  padding: 6px 14px;
+  font-size: 14px;
+  background: rgba(30, 41, 59, 0.85);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#btn-exit-fullscreen:hover {
+  background: rgba(30, 41, 59, 0.95);
 }

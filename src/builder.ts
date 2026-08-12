@@ -85,7 +85,9 @@ export function buildScene(scene: THREE.Scene, spec: SceneSpec): BuildResult {
   floor.receiveShadow = true
   root.add(floor)
 
-  const grid = new THREE.GridHelper(spec.floor.w, Math.round(spec.floor.w), 0x94a3b8, 0xcbd5e1)
+  const gridSize = Math.max(spec.floor.w, spec.floor.d)
+  const gridDivisions = Math.round(gridSize)
+  const grid = new THREE.GridHelper(gridSize, gridDivisions, 0x94a3b8, 0xcbd5e1)
   grid.position.y = 0.001
   root.add(grid)
 

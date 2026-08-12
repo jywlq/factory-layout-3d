@@ -131,6 +131,11 @@ function addDevice(type: DeviceType): void {
 
 function toggleView(): void {
   topViewEnabled = !topViewEnabled
+  // 切顶视图时退出自由视角（顶视图用 OrbitControls 平移/缩放）
+  if (topViewEnabled && controls.isFPSActive()) {
+    controls.disableFPS()
+    ui.fpsButton.textContent = '自由视角'
+  }
   activeCamera = topViewEnabled ? orthoCamera : perspectiveCamera
   controls.setCamera(activeCamera)
   ui.viewButton.textContent = topViewEnabled ? '切换透视视角' : '切换顶视图'
@@ -210,6 +215,8 @@ for (const [type, button] of Object.entries(ui.addButtons) as [DeviceType, HTMLB
 
 renderer.domElement.addEventListener('pointerdown', (event) => {
   if (controls.transform.dragging) return
+  // FPS 模式下左键拖动用于转向，不触发设备选中
+  if (controls.isFPSActive()) return
 
   const rect = renderer.domElement.getBoundingClientRect()
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
@@ -231,6 +238,24 @@ renderer.domElement.addEventListener('pointerdown', (event) => {
 })
 
 window.addEventListener('keydown', (event: KeyboardEvent) => {
+  // FPS 模式下的 WASD/Space/Shift 按键
+  if (controls.isFPSActive()) {
+    switch (event.code) {
+      case 'KeyW': controls.setFPSKeys({ forward: true }); break
+      case 'KeyS': controls.setFPSKeys({ backward: true }); break
+      case 'KeyA': controls.setFPSKeys({ left: true }); break
+      case 'KeyD': controls.setFPSKeys({ right: true }); break
+      case 'Space': controls.setFPSKeys({ up: true }); break
+      case 'ShiftLeft':
+      case 'ShiftRight': controls.setFPSKeys({ down: true }); break
+      case 'Escape':
+        controls.disableFPS()
+        ui.fpsButton.textContent = '自由视角'
+        break
+    }
+    return
+  }
+
   if (event.key === 'Escape') {
     setSelection(null)
     return
@@ -243,6 +268,49 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
   }
 })
 
+window.addEventListener('keyup', (event: KeyboardEvent) => {
+  if (!controls.isFPSActive()) return
+  switch (event.code) {
+    case 'KeyW': controls.setFPSKeys({ forward: false }); break
+    case 'KeyS': controls.setFPSKeys({ backward: false }); break
+    case 'KeyA': controls.setFPSKeys({ left: false }); break
+    case 'KeyD': controls.setFPSKeys({ right: false }); break
+    case 'Space': controls.setFPSKeys({ up: false }); break
+    case 'ShiftLeft':
+    case 'ShiftRight': controls.setFPSKeys({ down: false }); break
+  }
+})
+
+ui.fpsButton.addEventListener('click', () => {
+  if (controls.isFPSActive()) {
+    controls.disableFPS()
+    ui.fpsButton.textContent = '自由视角'
+  } else {
+    // 顶视图模式下不启用 FPS
+    if (topViewEnabled) {
+      toggleView()
+    }
+    controls.enableFPS()
+    ui.fpsButton.textContent = '退出自由视角'
+  }
+})
+
+// 全屏切换：隐藏侧边栏和工具栏，画布占满
+let fullscreen = false
+function toggleFullscreen(): void {
+  fullscreen = !fullscreen
+  const sidebar = document.querySelector('.sidebar')
+  const toolbar = document.querySelector('.toolbar')
+  if (sidebar) sidebar.classList.toggle('collapsed', fullscreen)
+  if (toolbar) toolbar.classList.toggle('collapsed', fullscreen)
+  ui.fullscreenButton.textContent = fullscreen ? '退出全屏' : '全屏'
+  // 全屏时显示浮动退出按钮
+  ui.exitFullscreenButton.style.display = fullscreen ? 'block' : 'none'
+  setTimeout(resizeRenderer, 250)
+}
+ui.fullscreenButton.addEventListener('click', toggleFullscreen)
+ui.exitFullscreenButton.addEventListener('click', toggleFullscreen)
+
 controls.transform.addEventListener('objectChange', () => {
   if (!selectedId) return
   updateDeviceFromTransform(selectedId)
@@ -251,9 +319,20 @@ controls.transform.addEventListener('objectChange', () => {
 window.addEventListener('resize', resizeRenderer)
 resizeRenderer()
 
+// 默认启用自由视角
+controls.enableFPS()
+ui.fpsButton.textContent = '退出自由视角'
+
+let lastTime = performance.now()
 function animate(): void {
   requestAnimationFrame(animate)
-  controls.orbit.update()
+  const now = performance.now()
+  const delta = (now - lastTime) / 1000
+  lastTime = now
+  controls.updateFPS(delta)
+  if (!controls.isFPSActive()) {
+    controls.orbit.update()
+  }
   renderer.render(scene, activeCamera)
 }
 

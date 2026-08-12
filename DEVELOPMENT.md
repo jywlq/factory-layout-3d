@@ -84,13 +84,14 @@ factory-layout-3d/
     ├── spec.ts           # SceneSpec 数据契约类型定义
     ├── defaultSpec.ts    # 内置示例小工厂数据
     ├── builder.ts        # buildScene 纯函数重建场景；DEVICE_PRESETS 设备外观表
-    ├── controls.ts       # OrbitControls + TransformControls 封装（吸附/限位/相机切换）
+    ├── controls.ts       # OrbitControls + TransformControls + PointerLockControls 封装（吸附/限位/相机切换/FPS移动）
+    ├── dxf.ts            # ASCII DXF → SceneSpec 映射（dxf-parser）
     ├── io.ts             # JSON 导入导出、PNG 截图
     ├── ui.ts             # 原生 DOM 生成左侧设备面板与顶部工具栏
     └── style.css         # 原生样式
 ```
 
-> 待实施（CAD→3D 主线）：新建 `src/dxf.ts`（ASCII DXF → SceneSpec 映射）、`public/fixtures/sample.dxf`（内置样例）、"导入 CAD" 入口与解析状态栏。实施要求见 `TASKBOOK.md` 第 6 节。
+> CAD→3D 主线已实施：`src/dxf.ts` 实现 ASCII DXF → SceneSpec 映射，`public/fixtures/sample.dxf` 为内置样例，工具栏"导入CAD"/"加载示例CAD"为入口。
 
 ## 4. 核心架构与数据契约
 
@@ -139,7 +140,8 @@ interface SceneSpec {
 
 - 透视相机：`PerspectiveCamera`，初始 `(24, 20, 24)` 看向原点；
 - 顶视图相机：`OrthographicCamera`，位于 `(0, 40, 0)`，`up = (0, 0, -1)` 保证朝向与 CAD 平面图一致；
-- 切换逻辑在 `main.ts` 的 `toggleView()`，会同时更新 `OrbitControls` 与 `TransformControls` 的相机引用，并按地面尺寸重算正交视锥。
+- 切换逻辑在 `main.ts` 的 `toggleView()`，会同时更新 `OrbitControls` 与 `TransformControls` 的相机引用，并按地面尺寸重算正交视锥；
+- **WASD 自由视角**：基于 `PointerLockControls`，切换后指针锁定、鼠标转向、WASD 平移、Space 上升、Shift 下降；拖拽设备时自动暂停移动，Esc 退出回到轨道模式。
 
 ## 5. 开发流程
 
