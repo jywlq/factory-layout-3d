@@ -12,6 +12,10 @@ export interface UIRefs {
   screenshotButton: HTMLButtonElement
   fileInput: HTMLInputElement
   selectionText: HTMLSpanElement
+  dxfButton: HTMLButtonElement
+  dxfSampleButton: HTMLButtonElement
+  dxfFileInput: HTMLInputElement
+  dxfStatusText: HTMLSpanElement
 }
 
 export function createUI(root: HTMLElement): UIRefs {
@@ -33,8 +37,12 @@ export function createUI(root: HTMLElement): UIRefs {
           <button id="btn-save">保存场景</button>
           <button id="btn-load">加载场景</button>
           <button id="btn-shot">导出截图</button>
+          <button id="btn-dxf">导入CAD</button>
+          <button id="btn-dxf-sample">加载示例CAD</button>
           <span id="selection-text">未选中设备</span>
+          <span id="dxf-status"></span>
           <input id="file-input" type="file" accept="application/json" hidden>
+          <input id="dxf-input" type="file" accept=".dxf" hidden>
         </div>
         <div id="viewport"></div>
       </main>
@@ -64,5 +72,9 @@ export function createUI(root: HTMLElement): UIRefs {
     screenshotButton: getEl<HTMLButtonElement>('#btn-shot'),
     fileInput: getEl<HTMLInputElement>('#file-input'),
     selectionText: getEl<HTMLSpanElement>('#selection-text'),
+    dxfButton: getEl<HTMLButtonElement>('#btn-dxf'),
+    dxfSampleButton: getEl<HTMLButtonElement>('#btn-dxf-sample'),
+    dxfFileInput: getEl<HTMLInputElement>('#dxf-input'),
+    dxfStatusText: getEl<HTMLSpanElement>('#dxf-status'),
   }
 }

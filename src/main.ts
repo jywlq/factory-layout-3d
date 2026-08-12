@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { buildScene, getDevicePresetLabel } from './builder'
 import { createEditorControls } from './controls'
 import { downloadSpec, exportPng, loadSpecFromFile } from './io'
+import { loadDxfFromFile, loadDxfFromUrl } from './dxf'
 import { defaultSpec } from './defaultSpec'
 import type { DeviceSpec, DeviceType, SceneSpec } from './spec'
 import { createUI } from './ui'
@@ -168,6 +169,38 @@ ui.fileInput.addEventListener('change', async () => {
     window.alert(message)
   } finally {
     ui.fileInput.value = ''
+  }
+})
+
+ui.dxfButton.addEventListener('click', () => ui.dxfFileInput.click())
+
+ui.dxfFileInput.addEventListener('change', async () => {
+  const file = ui.dxfFileInput.files?.[0]
+  if (!file) return
+  try {
+    ui.dxfStatusText.textContent = '正在解析 DXF...'
+    spec = await loadDxfFromFile(file)
+    setSelection(null)
+    rebuildAndKeepSelection()
+    ui.dxfStatusText.textContent = `解析完成：${spec.walls.length} 段墙 / ${spec.devices.length} 台设备`
+  } catch (error) {
+    ui.dxfStatusText.textContent = '解析失败'
+    window.alert(error instanceof Error ? error.message : 'DXF 解析失败')
+  } finally {
+    ui.dxfFileInput.value = ''
+  }
+})
+
+ui.dxfSampleButton.addEventListener('click', async () => {
+  try {
+    ui.dxfStatusText.textContent = '正在加载示例 DXF...'
+    spec = await loadDxfFromUrl('/fixtures/sample.dxf')
+    setSelection(null)
+    rebuildAndKeepSelection()
+    ui.dxfStatusText.textContent = `示例加载完成：${spec.walls.length} 段墙 / ${spec.devices.length} 台设备`
+  } catch (error) {
+    ui.dxfStatusText.textContent = '加载失败'
+    window.alert(error instanceof Error ? error.message : '加载示例失败')
   }
 })
 

@@ -43,3 +43,8 @@ Desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+.trae
+AGENTS.md
+TASKBOOK.md
+.gitignore

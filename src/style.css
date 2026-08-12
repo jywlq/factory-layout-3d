@@ -71,6 +71,12 @@ button:hover {
   font-size: 14px;
 }
 
+#dxf-status {
+  color: #64748b;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
 #viewport {
   flex: 1;
   min-height: 0;
