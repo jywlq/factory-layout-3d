@@ -215,8 +215,6 @@ for (const [type, button] of Object.entries(ui.addButtons) as [DeviceType, HTMLB
 
 renderer.domElement.addEventListener('pointerdown', (event) => {
   if (controls.transform.dragging) return
-  // FPS 模式下左键拖动用于转向，不触发设备选中
-  if (controls.isFPSActive()) return
 
   const rect = renderer.domElement.getBoundingClientRect()
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
