@@ -8,7 +8,7 @@ This file provides guidance to Lingma (lingma.aliyun.com) when working with code
 
 - 需求基线见 **`TASKBOOK.md`（任务书 v2）**：本期核心交付是 **CAD(DXF)→三维场景自动生成**，目标是给客户快速展示厂房与设备面貌。
 - 入口页面：`index.html` 加载 `src/main.ts`。
-- 当前进度：**地基与 CAD→3D 已完成，正在实施 M3 打磨交付（WASD 自由视角 / UI 收尾 / 演示演练）**。
+- 当前进度：**M1 地基、M2 CAD→3D、M3 打磨交付均已完成**；M4+ 工业级演进仅规划（见 `ROADMAP.md`）。下一阶段是按验收清单做演示演练与必要收尾，勿再按“DXF 未实现”推进。
 
 ## 文档体系
 
@@ -18,6 +18,7 @@ This file provides guidance to Lingma (lingma.aliyun.com) when working with code
 | `TASKBOOK.md` | 需求唯一基线（任务书 v2），范围、验收清单与"我的假设"的事实来源 |
 | `DEVELOPMENT.md` | 个人开发者全流程指引：环境搭建、开发流程、代码规范、测试策略、构建部署 |
 | `AGENTS.md` | 本文件：架构要点与 AI 协作约定 |
+| `ROADMAP.md` | M4+ 工业级演进路线（本期任务书范围外，仅规划） |
 
 同一事实只允许有一个来源：需求以 `TASKBOOK.md` 为准，设备外观以 `builder.ts` 的 `DEVICE_PRESETS` 为准；文档与代码不一致时修正文档。
 
@@ -49,7 +50,7 @@ npm run preview
 - **语言**：TypeScript（tsconfig 启用 `noUnusedLocals`、`noUnusedParameters`）
 - **3D 渲染**：three.js 0.185 + `OrbitControls` / `TransformControls`
 - **UI**：原生 HTML/CSS，无框架
-- **包管理**：普通 npm 依赖；如后续实现 M2，按任务书允许引入 `dxf-parser`，**不得新增其他依赖**
+- **包管理**：普通 npm 依赖；当前白名单为 `three` + `dxf-parser`（dev：`vite` / `typescript` / `@types/three`），**不得新增其他依赖**
 
 按任务书要求，以下内容**禁止引入**：React/Vue/CSS 框架、WebGPU、后端/数据库、DWG/STEP/IGES 解析、真实 glTF 模型、仿真/AGV 调度/实时数据、登录/权限/国际化、测试框架。
 
@@ -101,7 +102,7 @@ export function buildScene(scene: THREE.Scene, spec: SceneSpec): BuildResult
 - 透视相机：`THREE.PerspectiveCamera`，初始位置 `(24, 20, 24)`，看向原点。
 - 顶视图相机：`THREE.OrthographicCamera`，位置 `(0, 40, 0)`，使用 `up = (0, 0, -1)` 保证与 CAD 视角方向一致。
 - 切换逻辑在 `main.ts` 的 `toggleView()`，会同时更新 `OrbitControls` 和 `TransformControls` 的相机引用。
-- **WASD 自由视角**：基于 `PointerLockControls`，切换后指针锁定+鼠标转向+WASD/Space/Shift 移动；拖拽设备时暂停移动，Esc 退出回轨道模式。仅作用于透视相机。
+- **WASD 自由视角**：`controls.ts` 内的自定义 Unity 式 FPS 模式（**不是** `PointerLockControls`）。开启后禁用 OrbitControls；左键拖动改朝向（yaw/pitch），WASD/Space/Shift 移动，滚轮沿视线前后移动；拖拽设备时暂停移动，Esc 或工具栏按钮退出回轨道模式。仅作用于透视相机。应用启动时默认开启自由视角。
 
 ### 5. 输入输出
 
@@ -116,11 +117,13 @@ export function buildScene(scene: THREE.Scene, spec: SceneSpec): BuildResult
 - `src/spec.ts`：`SceneSpec` 类型定义。
 - `src/defaultSpec.ts`：默认示例工厂数据。
 - `src/builder.ts`：`buildScene` 纯函数；设备外观预设；中文标签生成。
-- `src/controls.ts`：封装 `OrbitControls` + `TransformControls`，含拖拽时禁用轨道、吸附步长、相机切换。
+- `src/controls.ts`：封装 `OrbitControls` + `TransformControls` + 自定义 WASD 自由视角，含拖拽时禁用轨道、吸附步长、相机切换。
+- `src/dxf.ts`：ASCII DXF → `SceneSpec` 映射；`loadDxfFromFile` / `loadDxfFromUrl`。
 - `src/io.ts`：JSON 导入导出、PNG 截图。
 - `src/ui.ts`：生成左侧设备面板与顶部工具栏 DOM，返回 UI 引用。
 - `src/main.ts`：应用入口、状态管理、交互事件绑定、动画循环。
 - `src/style.css`：原生样式。
+- `public/fixtures/sample.dxf`：内置 CAD 样例（一键加载）。
 
 ## 人机协同测试约定（重要）
 
@@ -128,8 +131,10 @@ export function buildScene(scene: THREE.Scene, spec: SceneSpec): BuildResult
 - **未经用户明确要求，不要主动自动化操作浏览器**。需要浏览器验证时，把测试步骤整理成清单交给用户手动执行。
 - 主动向用户发起协助请求：请用户复现、截图、粘贴控制台输出、提供下载的文件内容等。
 
-## 待实施：CAD→3D 主线（以 TASKBOOK.md 为准）
+## CAD→3D 已实现（TASKBOOK 第 6 节）
 
-- **尚未实现**：没有 DXF 解析、没有 `dxf-parser` 依赖、没有“导入 CAD”入口与解析状态栏，也没有 `fixtures/sample.dxf`。
-- 实施要点（任务书 v2 第 6 节）：新建 `src/dxf.ts` 做 ASCII DXF → SceneSpec 映射（FLOOR 层包围盒作地面；WALL 层逐段成墙；INSERT 块名不区分大小写匹配设备目录；缺 FLOOR 回退为 WALL 包围盒外扩 1m；DXF(x,y)→three(x,z)）；内置样例建议放 `public/fixtures/sample.dxf` 使一键加载可用，解析结果用 `console.assert` 对照手算值自证。
+- **已落地**：依赖 `dxf-parser`；`src/dxf.ts` 做 ASCII DXF → `SceneSpec` 映射；工具栏「导入CAD」「加载示例CAD」+ `#dxf-status` 状态栏；内置样例 `public/fixtures/sample.dxf`。
+- 映射规则：FLOOR 层闭合 LWPOLYLINE 包围盒作地面并居中；WALL 层 LINE/LWPOLYLINE 逐段成墙；INSERT 块名不区分大小写匹配设备目录（machine/shelf/pallet/agv）；缺 FLOOR 回退为 WALL 包围盒外扩 1 m；DXF(x,y)→three(x,z)；墙高默认 3 m。
+- 解析结果在 dev 模式用 `console.assert` 做基础自证（floor 尺寸、墙数）。
 - 导入后生成的 spec 必须能继续走现有编辑闭环（移动/旋转/添加/删除/保存）。
+- 修改解析逻辑时保持与 `public/fixtures/sample.dxf` 及 README「CAD 规范 v1」一致。

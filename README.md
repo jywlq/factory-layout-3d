@@ -41,11 +41,12 @@ npm run preview    # 本地预览生产构建
 - 吸附开关：平移 0.5m，旋转 15°
 - Delete 删除选中设备，Esc 取消选中
 - 透视视角 / 顶视图切换（顶视图为正交相机）
-- WASD 自由视角模式：键盘移动 + 鼠标转向（PointerLockControls）
+- 导入 CAD（DXF）/ 一键加载内置样例，自动生成地面、墙与设备占位
+- WASD 自由视角模式：键盘移动 + 左键拖动转向
 - 场景 JSON 导出与导入
 - 当前视角 PNG 截图导出
 
-操作方式：默认轨道模式（鼠标拖动旋转、右键平移、滚轮缩放）；点击"自由视角"切换为 WASD 模式（WASD 移动、Space 上升、Shift 下降、鼠标转向，Esc 退出）。点击设备选中后，用工具栏"移动模式 / 旋转模式"拖动手柄编辑。
+操作方式：工具栏「退出自由视角」可切回轨道模式（鼠标拖动旋转、右键平移、滚轮缩放）；再次点「自由视角」进入 WASD 模式（WASD 移动、Space 上升、Shift 下降、左键拖动转向、滚轮沿视线前后移动，Esc 退出）。应用启动时默认处于自由视角。点击设备选中后，用工具栏「移动模式 / 旋转模式」拖动手柄编辑。
 
 ## 设备外观（DEVICE_PRESETS）
 
@@ -72,9 +73,9 @@ npm run preview    # 本地预览生产构建
 
 一切交互（添加/拖拽/旋转/删除/导入）只修改这份 JSON，再由 `buildScene(scene, spec)` 整体重建场景；数据契约不能持久化的操作，UI 一律不提供（高度锁定贴地、旋转仅限绕竖直轴）。
 
-## CAD 规范 v1（规划中，CAD→3D 主线的输入规范）
+## CAD 规范 v1（输入规范）
 
-> CAD→3D 功能尚未实施；本节为任务书定义的输入规范，实现时解析器只对本规范负责。
+> 解析器实现见 `src/dxf.ts`；内置样例见 `public/fixtures/sample.dxf`。demo 只对本规范与自带样例负责。
 
 - ASCII DXF，单位米。
 - **FLOOR 层**：闭合 LWPOLYLINE = 地面轮廓，取其包围盒作为 floor 的 w/d（居中对齐）。
@@ -82,16 +83,19 @@ npm run preview    # 本地预览生产构建
 - **设备**：INSERT 块，块名 ∈ 设备目录（不区分大小写）；插入点 = 设备中心；块旋转角 = 设备朝向。
 - 缺 FLOOR 时回退：WALL 包围盒外扩 1 m。
 - 坐标映射：DXF(x,y) → three(x,z)，保证顶视图的右/上 = CAD 的右/上，角度方向一致。
+- 墙高：CAD 规范 v1 未定义，默认 3 m。
 
 ## 代码结构（src）
 
 - `spec.ts`：`SceneSpec` 类型定义
 - `defaultSpec.ts`：内置小工厂示例
 - `builder.ts`：`buildScene(scene, spec)` 场景重建；`DEVICE_PRESETS` 设备外观表
-- `controls.ts`：OrbitControls / TransformControls 封装（吸附、限位、相机切换）
+- `controls.ts`：OrbitControls / TransformControls / 自定义 WASD 自由视角（吸附、限位、相机切换）
+- `dxf.ts`：ASCII DXF → `SceneSpec`；`loadDxfFromFile` / `loadDxfFromUrl`
 - `io.ts`：JSON 导入导出、PNG 截图
 - `ui.ts`：原生 HTML/CSS 工具栏
 - `main.ts`：应用入口与交互逻辑
+- `public/fixtures/sample.dxf`：内置 CAD 样例
 
 ## 已知限制
 

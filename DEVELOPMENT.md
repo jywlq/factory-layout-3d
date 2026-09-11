@@ -25,9 +25,9 @@
 
 **三维工厂布局规划器**是一个无后端的最小 Web 3D Demo：导入/编辑/保存三维工厂布局场景，用于在客户面前快速演示"导入 CAD 平面图 → 自动生成三维厂房 → 现场微调 → 保存/截图带走"的链路。
 
-- **技术栈**：Vite 8 + TypeScript + three.js 0.185，UI 为原生 HTML/CSS，界面文字全部中文。
-- **当前进度**：地基阶段（手动布局 / 编辑 / 保存）已完成；**CAD(DXF)→三维场景自动生成**为本期主线，尚未实施（见 `TASKBOOK.md` 第 3 节）。
-- **范围红线**：不引入 React/Vue/CSS 框架、WebGPU、后端/数据库、DWG/STEP/IGES 解析、真实 glTF 模型、仿真/AGV 调度/实时数据、登录/权限/国际化、测试框架。依赖白名单：`vite`、`typescript`、`three`（+ 实施 CAD→3D 时允许的 `dxf-parser`），除此之外**不新增任何依赖**。
+- **技术栈**：Vite 8 + TypeScript + three.js 0.185 + `dxf-parser`，UI 为原生 HTML/CSS，界面文字全部中文。
+- **当前进度**：M1 地基、M2 CAD→3D、M3 打磨交付均已完成（见 `TASKBOOK.md` 第 3 节与 `README.md` 项目状态表）。
+- **范围红线**：不引入 React/Vue/CSS 框架、WebGPU、后端/数据库、DWG/STEP/IGES 解析、真实 glTF 模型、仿真/AGV 调度/实时数据、登录/权限/国际化、测试框架。依赖白名单：`vite`、`typescript`、`three`、`dxf-parser`，除此之外**不新增任何依赖**。
 
 ## 2. 环境搭建
 
@@ -78,13 +78,17 @@ factory-layout-3d/
 ├── TASKBOOK.md           # 项目任务书 v2（需求唯一基线）
 ├── AGENTS.md             # 架构说明与 AI 协作规范
 ├── DEVELOPMENT.md        # 本文档：个人开发者全流程开发文档
+├── ROADMAP.md            # M4+ 工业级演进路线（本期范围外）
 ├── LICENSE               # MIT 许可证
+├── public/
+│   └── fixtures/
+│       └── sample.dxf    # 内置 CAD 样例（一键加载）
 └── src/
     ├── main.ts           # 应用入口：状态管理、交互事件绑定、动画循环
     ├── spec.ts           # SceneSpec 数据契约类型定义
     ├── defaultSpec.ts    # 内置示例小工厂数据
     ├── builder.ts        # buildScene 纯函数重建场景；DEVICE_PRESETS 设备外观表
-    ├── controls.ts       # OrbitControls + TransformControls + PointerLockControls 封装（吸附/限位/相机切换/FPS移动）
+    ├── controls.ts       # OrbitControls + TransformControls + 自定义 WASD 自由视角（吸附/限位/相机切换/FPS移动）
     ├── dxf.ts            # ASCII DXF → SceneSpec 映射（dxf-parser）
     ├── io.ts             # JSON 导入导出、PNG 截图
     ├── ui.ts             # 原生 DOM 生成左侧设备面板与顶部工具栏
@@ -141,7 +145,7 @@ interface SceneSpec {
 - 透视相机：`PerspectiveCamera`，初始 `(24, 20, 24)` 看向原点；
 - 顶视图相机：`OrthographicCamera`，位于 `(0, 40, 0)`，`up = (0, 0, -1)` 保证朝向与 CAD 平面图一致；
 - 切换逻辑在 `main.ts` 的 `toggleView()`，会同时更新 `OrbitControls` 与 `TransformControls` 的相机引用，并按地面尺寸重算正交视锥；
-- **WASD 自由视角**：基于 `PointerLockControls`，切换后指针锁定、鼠标转向、WASD 平移、Space 上升、Shift 下降；拖拽设备时自动暂停移动，Esc 退出回到轨道模式。
+- **WASD 自由视角**：`controls.ts` 内自定义 Unity 式 FPS 模式（**不是** `PointerLockControls`）。开启后禁用 OrbitControls；左键拖动改朝向，WASD 平移、Space 上升、Shift 下降、滚轮沿视线前后移动；拖拽设备时自动暂停移动，Esc 或工具栏按钮退出回到轨道模式。应用启动时默认开启。
 
 ## 5. 开发流程
 
@@ -203,7 +207,7 @@ docs: 补充 README 已知限制与 CAD 规范 v1
 
 ### 6.2 模块与命名
 
-- `src/` 按职责分模块，一个文件一个职责（见 [项目结构](#3-项目结构)）；新增模块命名沿用现有短名风格（如未来的 `dxf.ts`），不强求 catalog.ts/editor.ts 之类的命名。
+- `src/` 按职责分模块，一个文件一个职责（见 [项目结构](#3-项目结构)）；新增模块命名沿用现有短名风格（如 `dxf.ts`），不强求 catalog.ts/editor.ts 之类的命名。
 - 导出函数用小驼峰（`buildScene`、`createEditorControls`）；类型用大驼峰（`SceneSpec`、`BuildResult`）；常量表用全大写下划线（`DEVICE_PRESETS`、`ROOT_NAME`）。
 - Three.js 对象的业务标识放在 `userData`（如 `userData.deviceId`），场景根节点用固定名字 `factory-root` 识别。
 
@@ -225,7 +229,7 @@ docs: 补充 README 已知限制与 CAD 规范 v1
 
 ### 7.1 自动自证（console.assert）
 
-纯逻辑（尤其是未来的 DXF 解析）必须内置已知输入的自证：用 fixture 的已知坐标，在 dev 模式以 `console.assert` 对照手算值，断言失败在控制台立即可见。
+纯逻辑（尤其是 DXF 解析）必须内置已知输入的自证：用 fixture 的已知坐标，在 dev 模式以 `console.assert` 对照手算值，断言失败在控制台立即可见。
 
 ### 7.2 手工功能清单
 
